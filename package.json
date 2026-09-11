@@ -1,7 +1,7 @@
 {
-  "name": "jot-extension",
+  "name": "trove-extension",
   "version": "1.0.0",
-  "description": "Jot - Phase 1 Browser Extension",
+  "description": "Trove - Phase 1 Browser Extension",
   "type": "module",
   "scripts": {
     "dev": "vite",

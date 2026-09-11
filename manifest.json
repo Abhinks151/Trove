@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Jot",
+  "name": "Trove",
   "version": "1.0.0",
   "description": "Minimal browser note-taking extension for capturing thoughts quickly.",
   "permissions": [
