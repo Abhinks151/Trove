@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jot</title>
+  <link rel="stylesheet" href="./popup.css">
+</head>
+
+<body>
+  <div id="app">
+    <!-- View 1: Create Note -->
+    <section id="view-create" class="view active">
+      <header class="header centered">
+        <h1 class="brand-title">JOT</h1>
+      </header>
+
+      <main class="content">
+        <div class="input-group">
+          <textarea id="note-input" placeholder="Write a note..." aria-label="Write a note" rows="7"></textarea>
+        </div>
+
+        <div id="create-feedback" class="feedback-msg" aria-live="polite"></div>
+
+        <div class="actions-group">
+          <button id="btn-save" class="btn btn-primary" type="button">Save Note</button>
+          <button id="btn-see-notes" class="btn btn-secondary" type="button">See Notes</button>
+        </div>
+      </main>
+    </section>
+
+    <!-- View 2: Notes List -->
+    <section id="view-list" class="view hidden">
+      <header class="header nav-header">
+        <button id="btn-list-back" class="btn-icon" aria-label="Back to Create Note" type="button">
+          ← Back
+        </button>
+        <h2 class="header-title">Your Notes</h2>
+        <div class="header-spacer"></div>
+      </header>
+
+      <main class="content scrollable">
+        <div id="notes-list-container" class="notes-list"></div>
+
+        <div id="empty-state" class="empty-state hidden">
+          <p class="empty-title">No notes yet.</p>
+          <p class="empty-subtitle">Write something and save it to see it here.</p>
+          <button id="btn-create-note-empty" class="btn btn-primary" type="button">Create Note</button>
+        </div>
+      </main>
+    </section>
+
+    <!-- View 3: Note Detail & Edit -->
+    <section id="view-detail" class="view hidden">
+      <header class="header nav-header">
+        <button id="btn-detail-back" class="btn-icon" aria-label="Back to Notes List" type="button">
+          ← Back
+        </button>
+        <h2 class="header-title">Note</h2>
+        <div class="header-spacer"></div>
+      </header>
+
+      <main class="content">
+        <div class="input-group">
+          <textarea id="detail-input" placeholder="Write a note..." aria-label="Note content" rows="7"></textarea>
+        </div>
+
+        <div id="detail-timestamp" class="detail-time"></div>
+        <div id="detail-feedback" class="feedback-msg" aria-live="polite"></div>
+
+        <div class="actions-group">
+          <button id="btn-update-note" class="btn btn-primary" type="button">Save Note</button>
+          <button id="btn-delete-note" class="btn btn-danger" type="button">Delete Note</button>
+        </div>
+      </main>
+    </section>
+
+    <!-- App Overlay: Delete Confirmation Dialog -->
+    <div id="delete-confirm-dialog" class="confirm-dialog hidden" role="dialog" aria-modal="true"
+      aria-labelledby="confirm-title">
+      <div class="confirm-card">
+        <h3 id="confirm-title" class="confirm-heading">Delete this note?</h3>
+        <p class="confirm-desc">This action cannot be undone.</p>
+        <div class="confirm-actions">
+          <button id="btn-cancel-delete" class="btn btn-secondary" type="button">Cancel</button>
+          <button id="btn-confirm-delete" class="btn btn-danger" type="button">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./popup.ts"></script>
+</body>
+
+</html>
