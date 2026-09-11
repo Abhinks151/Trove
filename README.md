@@ -1,4 +1,4 @@
-# Jot — Phase 1
+# Jot — Browser Extension (Phase 1)
 
 Jot is a minimal, clean, local browser extension designed for quick note-taking and capturing thoughts before they disappear.
 
@@ -6,107 +6,87 @@ Built for **Brave Browser** and all **Chromium-based browsers** (Chrome, Edge, O
 
 ---
 
-## Features (Phase 1)
+## 🚀 Quick Installation Guide
 
-- **Toolbar Quick Access**: Open extension instantly from the browser toolbar.
-- **Immediate Focus Textarea**: Open and write notes without friction.
-- **Inline Validation & Feedback**: Clear user feedback for saved or empty notes.
-- **Notes List View**: View saved notes listed newest-first with date timestamps and text previews.
-- **Note Detail View**: Read full notes comfortably with multiline formatting.
-- **Note Deletion**: Delete notes with explicit confirmation state.
-- **100% Local Storage**: Stores notes in `chrome.storage.local`. Zero backend, zero tracking, zero external APIs, works fully offline.
+You can install Jot either by downloading the pre-built release package or by building from source.
+
+### Option A: Install from Release Zip (Recommended)
+
+1. Download the latest release package (**`v0.1.0`**) zip file from the Releases page.
+2. Extract the downloaded zip file to a folder on your computer.
+3. Open **Brave** or **Chrome** and navigate to:
+   - Brave: `brave://extensions`
+   - Chrome: `chrome://extensions`
+   - Edge: `edge://extensions`
+4. Enable **Developer mode** (toggle switch in the top-right corner).
+5. Click **Load unpacked** in the top action bar.
+6. Select the extracted release folder.
+7. **Pin Jot** to your browser toolbar.
 
 ---
 
-## Tech Stack
+### Option B: Build & Install from Source
+
+1. **Clone repository & install dependencies**:
+   ```bash
+   pnpm install
+   ```
+
+2. **Run tests**:
+   ```bash
+   pnpm test
+   ```
+
+3. **Build extension**:
+   ```bash
+   pnpm build
+   ```
+   This generates the compiled extension directory at `dist/`.
+
+4. **Load into Browser**:
+   - Go to `brave://extensions` (or `chrome://extensions`).
+   - Enable **Developer mode**.
+   - Click **Load unpacked** and select the **`dist/`** directory.
+   - **Pin Jot** to your toolbar.
+
+---
+
+## 💡 Usage
+
+1. **Create Note**: Click the toolbar icon, write your note, and click **Save Note**.
+2. **View Notes**: Click **See Notes** to view your saved notes listed newest-first.
+3. **Read & Edit Note**: Click any note item to open it in full view, edit the content, and click **Save Note**.
+4. **Delete Note**: Click **Delete Note** and confirm in the dialog prompt.
+
+---
+
+## ✨ Key Features (Phase 1)
+
+- **Toolbar Quick Access**: Open extension instantly from toolbar.
+- **Immediate Focus**: Textarea auto-focuses on open.
+- **Inline Validation & Feedback**: Clear status messages for saved or empty notes.
+- **Notes List & Editable Detail**: Browse notes newest-first, read full text, or edit inline.
+- **100% Offline & Private**: Stored locally in `chrome.storage.local`. Zero tracking, zero external APIs.
+
+---
+
+## 🛠️ Tech Stack & Structure
 
 - **TypeScript** (Strict mode)
 - **HTML5 & Vanilla CSS**
 - **Manifest V3** & **Chromium Extension APIs**
-- **Vite** (Build tooling)
-- **Vitest** (Unit testing)
-- **pnpm** (Package manager)
-
----
-
-## Installation & Development Setup
-
-### 1. Install Dependencies
-
-Ensure node (v18+) and `pnpm` are installed on your machine.
-
-```bash
-pnpm install
-```
-
-### 2. Run Tests
-
-Run the test suite to verify storage and note operations:
-
-```bash
-pnpm test
-```
-
-### 3. Build the Extension
-
-To generate the extension build artifact:
-
-```bash
-pnpm build
-```
-
-This compiles TypeScript and outputs the ready-to-load extension into the `dist/` directory.
-
----
-
-## Loading Jot in Brave / Chrome
-
-Follow these steps to load Jot into Brave or any Chromium browser:
-
-1. Open **Brave Browser** (or Chrome).
-2. Navigate to the extension management page:
-   - In Brave: `brave://extensions`
-   - In Chrome: `chrome://extensions`
-3. Toggle **Developer mode** in the top right corner to **ON**.
-4. Click the **"Load unpacked"** button in the top toolbar.
-5. Select the **`dist/`** directory located inside this project folder (`sample/dist`).
-6. **Pin Jot** to your browser toolbar for easy access.
-
----
-
-## Usage Guide
-
-1. **Create a Note**:
-   - Click the **Jot** icon in your browser toolbar.
-   - Type your note into the text area.
-   - Click **Save Note** (or check validation if empty).
-2. **View Notes**:
-   - Click **See Notes** on the main screen to view all saved notes listed newest-first.
-3. **Read Note**:
-   - Click any note item in the list to open its full detail view.
-4. **Delete Note**:
-   - Click **Delete Note** in the detail view.
-   - Confirm deletion in the prompt dialog.
-
----
-
-## Project Structure
+- **Vite** & **Vitest**
 
 ```text
 sample/
-├── dist/                   # Output folder for unpacked extension
-├── public/                 # Static assets & Manifest V3 template
-│   ├── icons/              # Extension icons (16, 48, 128px)
-│   └── manifest.json       # Extension manifest file
+├── dist/                   # Compiled output folder for extension
+├── public/                 # Extension icons & Manifest V3
 ├── src/
-│   ├── popup/              # Extension popup UI (HTML, CSS, TypeScript)
-│   ├── storage/            # chrome.storage.local abstraction logic
+│   ├── popup/              # UI components (HTML, CSS, TypeScript)
+│   ├── storage/            # chrome.storage.local data handling
 │   ├── types/              # TypeScript interfaces (Note)
-│   ├── utils/              # Helper functions (Date formatting)
-│   └── __tests__/          # Vitest unit test suite
+│   ├── utils/              # Date formatting utilities
+│   └── __tests__/          # Vitest test suite
 ├── package.json
-├── tsconfig.json
-├── vite.config.ts
-├── vitest.config.ts
 └── README.md
 ```

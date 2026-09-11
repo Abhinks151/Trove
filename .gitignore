@@ -17,3 +17,6 @@ pnpm-debug.log*
 .idea/
 .vscode/
 *.swp
+
+
+trove-v0.1.0.zip
