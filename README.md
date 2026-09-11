@@ -1,6 +1,6 @@
-# Jot — Browser Extension (Phase 1)
+# Trove — Browser Extension (Phase 1)
 
-Jot is a minimal, clean, local browser extension designed for quick note-taking and capturing thoughts before they disappear.
+Trove is a minimal, clean, local browser extension designed for quick note-taking and capturing thoughts before they disappear.
 
 Built for **Brave Browser** and all **Chromium-based browsers** (Chrome, Edge, Opera) using **Manifest V3** and `chrome.storage.local`.
 
@@ -8,7 +8,7 @@ Built for **Brave Browser** and all **Chromium-based browsers** (Chrome, Edge, O
 
 ## 🚀 Quick Installation Guide
 
-You can install Jot either by downloading the pre-built release package or by building from source.
+You can install Trove either by downloading the pre-built release package or by building from source.
 
 ### Option A: Install from Release Zip (Recommended)
 
@@ -21,7 +21,7 @@ You can install Jot either by downloading the pre-built release package or by bu
 4. Enable **Developer mode** (toggle switch in the top-right corner).
 5. Click **Load unpacked** in the top action bar.
 6. Select the extracted release folder.
-7. **Pin Jot** to your browser toolbar.
+7. **Pin Trove** to your browser toolbar.
 
 ---
 
@@ -47,7 +47,7 @@ You can install Jot either by downloading the pre-built release package or by bu
    - Go to `brave://extensions` (or `chrome://extensions`).
    - Enable **Developer mode**.
    - Click **Load unpacked** and select the **`dist/`** directory.
-   - **Pin Jot** to your toolbar.
+   - **Pin Trove** to your toolbar.
 
 ---
 

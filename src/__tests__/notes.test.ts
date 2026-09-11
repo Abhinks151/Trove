@@ -25,7 +25,7 @@ const mockChromeStorage = {
 describe('Note Storage Logic', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete mockStorageData['jot_notes'];
+    delete mockStorageData['trove_notes'];
   });
 
   it('rejects saving empty notes', async () => {
@@ -59,7 +59,7 @@ describe('Note Storage Logic', () => {
       { id: '2', content: 'Newer Note', createdAt: 2000 },
       { id: '3', content: 'Newest Note', createdAt: 3000 }
     ];
-    mockStorageData['jot_notes'] = mockNotes;
+    mockStorageData['trove_notes'] = mockNotes;
 
     const notes = await getNotes();
 

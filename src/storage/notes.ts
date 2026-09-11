@@ -1,6 +1,6 @@
 import { Note } from '../types/note';
 
-const STORAGE_KEY = 'jot_notes';
+const STORAGE_KEY = 'trove_notes';
 
 /**
  * Sequential lock to prevent race conditions during rapid concurrent storage operations
