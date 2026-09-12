@@ -3,11 +3,12 @@ import {
   getTodos,
   saveTodo,
   toggleTodo,
+  updateTodo,
+  reorderTodos,
   deleteTodo,
   deleteCompletedTodos,
   deleteAllTodos
 } from '../storage/todos';
-import { Todo } from '../types/todo';
 
 // Mock chrome.storage.local
 const mockStorageData: Record<string, any> = {};
@@ -55,26 +56,64 @@ describe('Todo Storage Logic', () => {
     expect(mockChromeStorage.set).toHaveBeenCalledTimes(1);
   });
 
-  it('retrieves saved todos', async () => {
-    await saveTodo('First task');
+  it('appends new todos to the bottom of the list', async () => {
+    const todoA = await saveTodo('Todo A');
+    const todoB = await saveTodo('Todo B');
+    const todoC = await saveTodo('Todo C');
+
     const todos = await getTodos();
 
-    expect(todos.length).toBe(1);
-    expect(todos[0].text).toBe('First task');
+    expect(todos.length).toBe(3);
+    expect(todos[0].text).toBe('Todo A');
+    expect(todos[1].text).toBe('Todo B');
+    expect(todos[2].text).toBe('Todo C');
   });
 
-  it('toggles completion status of a todo', async () => {
-    const todo = await saveTodo('Task to complete');
-    expect(todo.completed).toBe(false);
+  it('edits an existing todo text without changing completion or order', async () => {
+    const todo1 = await saveTodo('Todo A');
+    const todo2 = await saveTodo('Todo B');
 
-    const toggled = await toggleTodo(todo.id);
-    expect(toggled.completed).toBe(true);
+    const updated = await updateTodo(todo1.id, 'Todo A Modified');
+
+    expect(updated.text).toBe('Todo A Modified');
 
     const todos = await getTodos();
-    expect(todos[0].completed).toBe(true);
+    expect(todos[0].text).toBe('Todo A Modified');
+    expect(todos[1].text).toBe('Todo B');
+  });
 
-    const toggledBack = await toggleTodo(todo.id);
-    expect(toggledBack.completed).toBe(false);
+  it('rejects updating a todo with empty text', async () => {
+    const todo = await saveTodo('Todo A');
+    await expect(updateTodo(todo.id, '   ')).rejects.toThrow('Write something before saving.');
+  });
+
+  it('persists manual drag-and-drop reordering', async () => {
+    const todoA = await saveTodo('Todo A');
+    const todoB = await saveTodo('Todo B');
+    const todoC = await saveTodo('Todo C');
+
+    // Reorder C, A, B
+    await reorderTodos([todoC.id, todoA.id, todoB.id]);
+
+    const reorderedTodos = await getTodos();
+    expect(reorderedTodos[0].text).toBe('Todo C');
+    expect(reorderedTodos[1].text).toBe('Todo A');
+    expect(reorderedTodos[2].text).toBe('Todo B');
+  });
+
+  it('toggles completion status of a todo without changing order', async () => {
+    const todoA = await saveTodo('Todo A');
+    const todoB = await saveTodo('Todo B');
+    const todoC = await saveTodo('Todo C');
+
+    // Complete Todo B (in middle)
+    await toggleTodo(todoB.id);
+
+    const todos = await getTodos();
+    expect(todos[0].text).toBe('Todo A');
+    expect(todos[1].text).toBe('Todo B');
+    expect(todos[1].completed).toBe(true);
+    expect(todos[2].text).toBe('Todo C');
   });
 
   it('deletes an individual todo by id', async () => {
@@ -102,9 +141,9 @@ describe('Todo Storage Logic', () => {
 
     const remaining = await getTodos();
     expect(remaining.length).toBe(2);
-    expect(remaining.find(t => t.id === todo2.id)).toBeUndefined();
-    expect(remaining.find(t => t.id === todo1.id)).toBeDefined();
-    expect(remaining.find(t => t.id === todo3.id)).toBeDefined();
+    expect(remaining.find((t) => t.id === todo2.id)).toBeUndefined();
+    expect(remaining.find((t) => t.id === todo1.id)).toBeDefined();
+    expect(remaining.find((t) => t.id === todo3.id)).toBeDefined();
   });
 
   it('deletes all todos', async () => {

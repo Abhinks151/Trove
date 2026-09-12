@@ -395,22 +395,65 @@ body {
   overflow: hidden;
 }
 
+.scrollable-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Scrollable Container — Hides native scrollbar while allowing scrolling */
 .content.scrollable {
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 2px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
 }
 
 .content.scrollable::-webkit-scrollbar {
-  width: 6px;
+  display: none; /* Chrome, Safari, Opera */
 }
 
-.content.scrollable::-webkit-scrollbar-track {
-  background: transparent;
+/* Custom Scroll Indicator Arrows */
+.scroll-indicator {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background-color: var(--text-primary);
+  color: var(--card-bg);
+  border: 2px solid var(--border-color);
+  box-shadow: 2px 2px 0 var(--border-color);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.1s ease, background-color 0.1s ease;
+  user-select: none;
 }
 
-.content.scrollable::-webkit-scrollbar-thumb {
-  background: var(--border-color);
+.scroll-indicator-top {
+  top: 6px;
+}
+
+.scroll-indicator-bottom {
+  bottom: 6px;
+}
+
+.scroll-indicator:hover {
+  background-color: var(--accent-blue);
+  transform: translateX(-50%) scale(1.1);
+}
+
+.scroll-indicator:active {
+  transform: translateX(-50%) scale(0.95);
 }
 
 .input-group {
@@ -603,6 +646,7 @@ textarea::placeholder {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding-bottom: 20px;
 }
 
 .todo-item {
@@ -612,9 +656,10 @@ textarea::placeholder {
   background-color: var(--card-bg);
   border: var(--border-width) solid var(--border-color);
   box-shadow: 3px 3px 0 var(--border-color);
-  padding: 10px 12px;
-  gap: 10px;
-  transition: transform 0.08s ease;
+  padding: 8px 10px;
+  gap: 8px;
+  transition: transform 0.08s ease, background-color 0.1s ease;
+  user-select: none;
 }
 
 .todo-item:hover {
@@ -622,10 +667,36 @@ textarea::placeholder {
   box-shadow: 4px 4px 0 var(--border-color);
 }
 
+.todo-item.dragging {
+  opacity: 0.5;
+  border-style: dashed;
+  background-color: var(--card-hover);
+}
+
+.todo-item.drag-over {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px var(--accent-blue);
+}
+
+.drag-handle {
+  cursor: grab;
+  font-size: 14px;
+  color: var(--text-muted);
+  padding: 2px 4px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
 .todo-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex: 1;
   min-width: 0;
 }
@@ -668,6 +739,19 @@ textarea::placeholder {
   font-weight: 700;
   color: var(--text-primary);
   word-break: break-word;
+  cursor: pointer;
+}
+
+.todo-edit-input {
+  flex: 1;
+  padding: 4px 6px;
+  font-family: var(--font-family);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background-color: #FFFFFF;
+  border: 2px solid var(--accent-blue);
+  outline: none;
 }
 
 .todo-item.completed {
@@ -680,17 +764,37 @@ textarea::placeholder {
   font-weight: 600;
 }
 
+.todo-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-edit-todo,
 .btn-delete-todo {
   background-color: var(--card-bg);
   border: 2px solid var(--border-color);
-  color: var(--accent-red);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
-  padding: 4px 8px;
+  padding: 3px 6px;
   cursor: pointer;
   box-shadow: 2px 2px 0 var(--border-color);
   transition: transform 0.08s ease, background-color 0.1s ease;
   flex-shrink: 0;
+}
+
+.btn-edit-todo {
+  color: var(--accent-blue);
+}
+
+.btn-edit-todo:hover {
+  background-color: var(--accent-blue);
+  color: #FFFFFF;
+  transform: translate(-1px, -1px);
+}
+
+.btn-delete-todo {
+  color: var(--accent-red);
 }
 
 .btn-delete-todo:hover {
@@ -699,10 +803,12 @@ textarea::placeholder {
   transform: translate(-1px, -1px);
 }
 
+.btn-edit-todo:focus-visible,
 .btn-delete-todo:focus-visible {
   outline: 2px solid var(--accent-blue);
 }
 
+.btn-edit-todo:active,
 .btn-delete-todo:active {
   transform: translate(1px, 1px);
 }
