@@ -1,6 +1,6 @@
-# Trove — Browser Extension (Phase 1)
+# Trive — Browser Extension (v0.1.0)
 
-Trove is a minimal, clean, local browser extension designed for quick note-taking and capturing thoughts before they disappear.
+Trive is a fast, clean, local browser extension for capturing notes and managing tasks quickly before they disappear.
 
 Built for **Brave Browser** and all **Chromium-based browsers** (Chrome, Edge, Opera) using **Manifest V3** and `chrome.storage.local`.
 
@@ -8,20 +8,20 @@ Built for **Brave Browser** and all **Chromium-based browsers** (Chrome, Edge, O
 
 ## 🚀 Quick Installation Guide
 
-You can install Trove either by downloading the pre-built release package or by building from source.
+You can install Trive either by downloading the pre-built release package or by building from source.
 
 ### Option A: Install from Release Zip (Recommended)
 
-1. Download the latest release package (**`v0.1.0`**) zip file from the Releases page.
+1. Download the latest release package (**`v0.1.0`**) zip file.
 2. Extract the downloaded zip file to a folder on your computer.
 3. Open **Brave** or **Chrome** and navigate to:
    - Brave: `brave://extensions`
    - Chrome: `chrome://extensions`
    - Edge: `edge://extensions`
-4. Enable **Developer mode** (toggle switch in the top-right corner).
-5. Click **Load unpacked** in the top action bar.
-6. Select the extracted release folder.
-7. **Pin Trove** to your browser toolbar.
+4. Enable **Developer mode** (toggle switch in top-right corner).
+5. Click **Load unpacked** in top action bar.
+6. Select the extracted release folder (`dist/`).
+7. **Pin Trive** to your browser toolbar.
 
 ---
 
@@ -47,25 +47,45 @@ You can install Trove either by downloading the pre-built release package or by 
    - Go to `brave://extensions` (or `chrome://extensions`).
    - Enable **Developer mode**.
    - Click **Load unpacked** and select the **`dist/`** directory.
-   - **Pin Trove** to your toolbar.
+   - **Pin Trive** to your toolbar.
 
 ---
 
-## 💡 Usage
+## ⌨️ Keyboard Shortcuts
 
-1. **Create Note**: Click the toolbar icon, write your note, and click **Save Note**.
-2. **View Notes**: Click **See Notes** to view your saved notes listed newest-first.
-3. **Read & Edit Note**: Click any note item to open it in full view, edit the content, and click **Save Note**.
-4. **Delete Note**: Click **Delete Note** and confirm in the dialog prompt.
+Access Trive features directly with left-hand accessible shortcuts:
+
+- **Alt + Shift + A** → Open Notes directly
+- **Alt + Shift + S** → Open Todos directly
+
+Shortcuts can also be customized in your browser's extension shortcut settings (`chrome://extensions/shortcuts` or `brave://extensions/shortcuts`).
 
 ---
 
-## ✨ Key Features (Phase 1)
+## 💡 Usage & Sections
 
-- **Toolbar Quick Access**: Open extension instantly from toolbar.
-- **Immediate Focus**: Textarea auto-focuses on open.
-- **Inline Validation & Feedback**: Clear status messages for saved or empty notes.
-- **Notes List & Editable Detail**: Browse notes newest-first, read full text, or edit inline.
+### 🏠 Home Page
+Central hub with direct navigation to **Notes** and **Todos**.
+
+### 📝 Notes
+1. **Create Note**: Click **Notes** → **+ New**, write your note, and click **Save Note**.
+2. **View Notes**: Browse your saved notes listed newest-first.
+3. **Edit Note**: Click any note card to open detail view, edit content, and click **Save Note**.
+4. **Delete Note**: Click **Delete Note** and confirm in the dialog.
+
+### ☑️ Todos
+1. **Add Todo**: Type a task in the input box and press **Enter** or click **Add**.
+2. **Complete Todo**: Click the checkbox to toggle completion state.
+3. **Delete Individual Todo**: Click **Delete** on any task item.
+4. **Bulk Delete**: Click **Delete Todos** to open prompt offering to **Delete completed**, **Delete all**, or **Cancel**.
+
+---
+
+## ✨ Key Features (v0.1.0)
+
+- **Neo-Brutalist Visual Identity**: High-contrast, bold typography, hard offset shadows, Memphis geometric accents.
+- **Direct Keyboard Access**: Direct shortcuts to Notes and Todos.
+- **Notes & Todos**: Simple, fast local note-taking and task list.
 - **100% Offline & Private**: Stored locally in `chrome.storage.local`. Zero tracking, zero external APIs.
 
 ---
@@ -73,20 +93,22 @@ You can install Trove either by downloading the pre-built release package or by 
 ## 🛠️ Tech Stack & Structure
 
 - **TypeScript** (Strict mode)
-- **HTML5 & Vanilla CSS**
+- **HTML5 & Vanilla CSS** (Neo-Brutalist + Memphis style)
 - **Manifest V3** & **Chromium Extension APIs**
 - **Vite** & **Vitest**
 
 ```text
-sample/
+Trive/
 ├── dist/                   # Compiled output folder for extension
-├── public/                 # Extension icons & Manifest V3
+├── public/                 # Extension icons
 ├── src/
-│   ├── popup/              # UI components (HTML, CSS, TypeScript)
-│   ├── storage/            # chrome.storage.local data handling
-│   ├── types/              # TypeScript interfaces (Note)
+│   ├── background/         # Background service worker for commands
+│   ├── popup/              # UI views (HTML, CSS, TypeScript)
+│   ├── storage/            # Local storage handling (notes & todos)
+│   ├── types/              # TypeScript interfaces (Note, Todo)
 │   ├── utils/              # Date formatting utilities
 │   └── __tests__/          # Vitest test suite
+├── manifest.json
 ├── package.json
 └── README.md
 ```
