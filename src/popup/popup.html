@@ -10,10 +10,75 @@
 
 <body>
   <div id="app">
-    <!-- View 1: Create Note -->
-    <section id="view-create" class="view active">
-      <header class="header centered">
+    <!-- Memphis Decorative Background Layer -->
+    <div class="memphis-bg" aria-hidden="true">
+      <div class="memphis-stripe stripe-1"></div>
+      <div class="memphis-stripe stripe-2"></div>
+      <div class="memphis-shape shape-square"></div>
+      <div class="memphis-shape shape-dot"></div>
+      <div class="memphis-shape shape-bar"></div>
+    </div>
+
+    <!-- View 0: Home Page (Default Entry Point) -->
+    <section id="view-home" class="view active">
+      <header class="header centered home-header">
+        <div class="brand-badge">TROVE</div>
         <h1 class="brand-title">TROVE</h1>
+        <p class="brand-tagline">Your notes. Your tasks.</p>
+      </header>
+
+      <main class="content home-content">
+        <div class="home-nav-grid">
+          <button id="btn-home-notes" class="btn-card card-notes" type="button">
+            <span class="card-icon" aria-hidden="true">📝</span>
+            <div class="card-body">
+              <span class="card-title">NOTES</span>
+              <span class="card-desc">Capture your thoughts</span>
+            </div>
+            <span class="card-arrow" aria-hidden="true">→</span>
+          </button>
+
+          <button id="btn-home-todos" class="btn-card card-todos" type="button">
+            <span class="card-icon" aria-hidden="true">☑️</span>
+            <div class="card-body">
+              <span class="card-title">TODOS</span>
+              <span class="card-desc">Manage your tasks</span>
+            </div>
+            <span class="card-arrow" aria-hidden="true">→</span>
+          </button>
+        </div>
+      </main>
+    </section>
+
+    <!-- View 1: Notes List -->
+    <section id="view-notes-list" class="view hidden">
+      <header class="header nav-header">
+        <button id="btn-notes-back" class="btn-icon" aria-label="Back to Home" type="button">
+          ← Home
+        </button>
+        <h2 class="header-title">Notes</h2>
+        <button id="btn-create-note-header" class="btn btn-sm btn-primary" type="button">+ New</button>
+      </header>
+
+      <main class="content scrollable">
+        <div id="notes-list-container" class="notes-list"></div>
+
+        <div id="notes-empty-state" class="empty-state hidden">
+          <p class="empty-title">No notes yet.</p>
+          <p class="empty-subtitle">Write something and save it to see it here.</p>
+          <button id="btn-create-note-empty" class="btn btn-primary" type="button">Create Note</button>
+        </div>
+      </main>
+    </section>
+
+    <!-- View 2: Create Note -->
+    <section id="view-note-create" class="view hidden">
+      <header class="header nav-header">
+        <button id="btn-create-back" class="btn-icon" aria-label="Back to Notes" type="button">
+          ← Back
+        </button>
+        <h2 class="header-title">New Note</h2>
+        <div class="header-spacer"></div>
       </header>
 
       <main class="content">
@@ -25,34 +90,12 @@
 
         <div class="actions-group">
           <button id="btn-save" class="btn btn-primary" type="button">Save Note</button>
-          <button id="btn-see-notes" class="btn btn-secondary" type="button">See Notes</button>
-        </div>
-      </main>
-    </section>
-
-    <!-- View 2: Notes List -->
-    <section id="view-list" class="view hidden">
-      <header class="header nav-header">
-        <button id="btn-list-back" class="btn-icon" aria-label="Back to Create Note" type="button">
-          ← Back
-        </button>
-        <h2 class="header-title">Your Notes</h2>
-        <div class="header-spacer"></div>
-      </header>
-
-      <main class="content scrollable">
-        <div id="notes-list-container" class="notes-list"></div>
-
-        <div id="empty-state" class="empty-state hidden">
-          <p class="empty-title">No notes yet.</p>
-          <p class="empty-subtitle">Write something and save it to see it here.</p>
-          <button id="btn-create-note-empty" class="btn btn-primary" type="button">Create Note</button>
         </div>
       </main>
     </section>
 
     <!-- View 3: Note Detail & Edit -->
-    <section id="view-detail" class="view hidden">
+    <section id="view-note-detail" class="view hidden">
       <header class="header nav-header">
         <button id="btn-detail-back" class="btn-icon" aria-label="Back to Notes List" type="button">
           ← Back
@@ -76,7 +119,37 @@
       </main>
     </section>
 
-    <!-- App Overlay: Delete Confirmation Dialog -->
+    <!-- View 4: Todos Section -->
+    <section id="view-todos" class="view hidden">
+      <header class="header nav-header">
+        <button id="btn-todos-back" class="btn-icon" aria-label="Back to Home" type="button">
+          ← Home
+        </button>
+        <h2 class="header-title">Todos</h2>
+        <button id="btn-clear-todos" class="btn btn-sm btn-secondary" type="button">Delete Todos</button>
+      </header>
+
+      <main class="content">
+        <div class="todo-create-box">
+          <input type="text" id="todo-input" class="todo-input" placeholder="Add something you need to remember..."
+            aria-label="Add new todo item" autocomplete="off" />
+          <button id="btn-add-todo" class="btn btn-primary btn-add" type="button">Add</button>
+        </div>
+
+        <div id="todo-feedback" class="feedback-msg" aria-live="polite"></div>
+
+        <div class="content scrollable todo-scrollable">
+          <div id="todos-list-container" class="todos-list"></div>
+
+          <div id="todos-empty-state" class="empty-state hidden">
+            <p class="empty-title">Nothing here yet.</p>
+            <p class="empty-subtitle">Add something you need to remember.</p>
+          </div>
+        </div>
+      </main>
+    </section>
+
+    <!-- Overlay 1: Delete Note Confirmation Dialog -->
     <div id="delete-confirm-dialog" class="confirm-dialog hidden" role="dialog" aria-modal="true"
       aria-labelledby="confirm-title">
       <div class="confirm-card">
@@ -85,6 +158,20 @@
         <div class="confirm-actions">
           <button id="btn-cancel-delete" class="btn btn-secondary" type="button">Cancel</button>
           <button id="btn-confirm-delete" class="btn btn-danger" type="button">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay 2: Todo Delete Confirmation Modal -->
+    <div id="todo-delete-dialog" class="confirm-dialog hidden" role="dialog" aria-modal="true"
+      aria-labelledby="todo-confirm-title">
+      <div class="confirm-card todo-confirm-card">
+        <h3 id="todo-confirm-title" class="confirm-heading">Delete Todos?</h3>
+        <p class="confirm-desc">What do you want to remove?</p>
+        <div class="confirm-actions-stacked">
+          <button id="btn-delete-completed" class="btn btn-primary" type="button">Delete completed</button>
+          <button id="btn-delete-all" class="btn btn-danger" type="button">Delete all</button>
+          <button id="btn-cancel-todo-delete" class="btn btn-secondary" type="button">Cancel</button>
         </div>
       </div>
     </div>
