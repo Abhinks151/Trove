@@ -1,7 +1,7 @@
 {
   "name": "trove-extension",
-  "version": "0.2.0",
-  "description": "Trove - Phase 1 Browser Extension",
+  "version": "0.1.1",
+  "description": "Trove - Browser Extension",
   "type": "module",
   "scripts": {
     "dev": "vite",

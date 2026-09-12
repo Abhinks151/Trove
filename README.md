@@ -2,15 +2,17 @@
 
 > Lightweight browser-native note and task capture.
 
-Trove is a browser extension I built to quickly capture notes and tasks without leaving the page I'm working on. Built for those moments when you're watching a video, reading an article, or browsing and need to write something down immediately.
+Trove is a browser extension built to quickly capture notes and tasks without leaving the page you're working on. Built for those moments when you're watching a video, reading an article, or browsing and need to write something down immediately.
 
 ---
 
 ## Features
 
-- Quick note-taking with edit & delete
-- Simple todo list with completion tracking
-- Keyboard shortcuts for direct access
+- Frictionless quick-capture for notes and todos
+- Quick note-taking with `Ctrl + Enter` save and full edit & delete
+- Todo list with inline editing, drag-and-drop reordering, and completion tracking
+- Custom scroll indicator control with native scrollbar hidden
+- Keyboard shortcuts for instant access (`Alt + Shift + A`, `Alt + Shift + S`)
 - Local-first storage — no account required
 - Works fully offline
 - Dark Neo-Brutalist UI
@@ -47,16 +49,16 @@ Home
 └── Todos
 ```
 
-**Notes** — Create, edit, and delete notes stored newest-first.
+**Notes** — Create (`Ctrl + Enter` to save), view, edit, and delete notes.
 
-**Todos** — Add tasks, mark complete, delete individually or in bulk.
+**Todos** — Add tasks (appended to bottom), inline edit, drag-and-drop reorder, toggle completion, and delete individually or in bulk.
 
-**Keyboard shortcuts**
+**Keyboard Shortcuts & Quick Capture Workflows**
 
-| Shortcut | Action |
-| --- | --- |
-| `Alt + Shift + A` | Open Notes |
-| `Alt + Shift + S` | Open Todos |
+| Shortcut | Action | Frictionless Workflow |
+| --- | --- | --- |
+| `Alt + Shift + A` | Quick Capture Note | Opens directly into Create Note mode with editor auto-focused → Type → `Ctrl + Enter` to save |
+| `Alt + Shift + S` | Quick Capture Todo | Opens directly to Todos with input auto-focused → Type → `Enter` to add & remain focused |
 
 Shortcuts can be customized at `brave://extensions/shortcuts`.
 

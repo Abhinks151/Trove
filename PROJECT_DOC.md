@@ -20,23 +20,24 @@ Trove was built as a personal tool to scratch that itch. It is intentionally min
 ### Design philosophy
 - **Fast**: Open, capture, close. No friction.
 - **Local-first**: Your data stays on your machine. No accounts, no sync, no cloud.
-- **Simple scope**: v0.1.0 is intentionally small. Every feature addition is a deliberate decision.
+- **Simple scope**: Every feature addition is a deliberate decision.
 - **Dark Neo-Brutalist UI**: Strong visual identity without being loud or inaccessible.
 
 ---
 
 ## 2. Product Scope
 
-### Current — v0.1.0
-- Notes (create, edit, delete)
-- Todos (add, complete, delete, bulk delete)
-- Keyboard shortcuts (Alt+Shift+A, Alt+Shift+S)
-- Home page as central navigation hub
+### Current — v0.1.1
+- Frictionless quick-capture for Notes (`Alt + Shift + A` → Create Note → Focus → `Ctrl + Enter` save)
+- Frictionless quick-capture for Todos (`Alt + Shift + S` → Focus → `Enter` add → Focus retained)
+- Notes (create, view, edit, delete)
+- Todos (add, inline edit, drag-and-drop reorder, complete, delete, bulk delete)
+- Deterministic todo ordering (appended to bottom, position preserved on completion toggle)
+- Custom scroll indicator control with native scrollbar hidden
 - Local-only persistence via `chrome.storage.local`
 
-### Explicitly excluded from v0.1.0
+### Explicitly excluded
 - Due dates, priorities, categories, tags
-- Sorting, filtering, drag and drop
 - Cloud sync, authentication, collaboration
 - AI features
 - Notifications or reminders
@@ -46,37 +47,40 @@ Trove was built as a personal tool to scratch that itch. It is intentionally min
 ## 3. Features
 
 ### Notes
-- Create a note via the Create Note view; input auto-focuses.
+- Frictionless quick capture via `Alt + Shift + A` opens directly to Create Note view with editor focused.
+- Create a note; save with `Ctrl + Enter` or the Save button.
+- Regular `Enter` key maintains normal multiline text editing.
 - Notes are stored and listed newest-first.
 - Click any note card to open it in detail/edit view.
-- Edit note content inline; save with the Save button.
+- Edit note content inline; save with the Save button or `Ctrl + Enter`.
 - Delete note via Delete Note with a confirmation dialog.
 - Empty or whitespace-only notes are rejected.
 
 ### Todos
-- Add a todo via the input box; press Enter or click Add.
+- Frictionless quick capture via `Alt + Shift + S` opens directly to Todos section with input focused.
+- Add a todo via the input box; press `Enter` or click Add. Input clears and immediately regains focus for consecutive entry.
+- New todos are appended to the bottom of the list.
 - Empty or whitespace-only todos are rejected.
-- Toggle completion via checkbox; completed todos show strikethrough text.
-- Delete individual todos via the Delete button on each item.
+- Edit existing todo inline (double-click text or click Edit); press `Enter` to save or `Esc` to cancel. Editing preserves completion state and list position.
+- Drag-and-drop reorder todos manually using drag handles; new order is persisted.
+- Toggle completion via checkbox; completed todos show strikethrough text without changing list position.
+- Delete individual todos via the Delete button on each item without losing scroll position.
 - Bulk delete via the Delete Todos button, which opens a modal with three options:
   - **Delete completed** — removes only completed todos.
   - **Delete all** — removes every todo.
   - **Cancel** — closes the modal without changes.
 - Empty state shown when no todos exist.
 
-### Keyboard shortcuts
-- `Alt + Shift + A` → Opens extension directly to Notes.
-- `Alt + Shift + S` → Opens extension directly to Todos.
-- `Alt + Shift + D` is intentionally unassigned (reserved for future use).
-- Shortcuts are registered via the native Chrome extension command API.
-- Can be customized by the user at `brave://extensions/shortcuts`.
+### Custom Scroll Indicator
+- Native browser scrollbars are hidden from list containers.
+- Replaced with a subtle arrow control button (`↓` / `↑`) that appears only when content overflows.
+- Clicking the arrow scrolls the list incrementally. When scrolled to the bottom, the arrow flips to `↑` to scroll up.
 
-### Navigation
-- Extension opens to Home by default.
-- Home → Notes, Home → Todos.
-- Notes → Home, Todos → Home.
-- Notes list → Note detail/edit → Notes list.
-- Keyboard shortcuts bypass Home and open the target section directly.
+### Keyboard Shortcuts & Routing
+- `Alt + Shift + A` → Triggers `notes-quick-capture` routing, opening extension directly to Create Note view with editor auto-focused.
+- `Alt + Shift + S` → Triggers `todos-quick-capture` routing, opening extension directly to Todos with input auto-focused.
+- Normal navigation (Home → Notes / Home → Todos) opens standard view lists without forcing quick-capture mode.
+- Shortcuts are registered via native Chrome extension command API and can be customized at `brave://extensions/shortcuts`.
 
 ---
 
@@ -110,14 +114,14 @@ Trove/
 │   │   └── background.ts   # MV3 service worker
 │   ├── popup/
 │   │   ├── popup.html      # Single-page popup shell
-│   │   ├── popup.css       # Full design system
+│   │   ├── popup.css       # Full design system & scroll indicator styles
 │   │   └── popup.ts        # View controller and all UI logic
 │   ├── storage/
 │   │   ├── notes.ts        # Notes CRUD + persistence
-│   │   └── todos.ts        # Todos CRUD + persistence
+│   │   └── todos.ts        # Todos CRUD, order management & reordering persistence
 │   ├── types/
 │   │   ├── note.ts         # Note interface
-│   │   └── todo.ts         # Todo interface
+│   │   └── todo.ts         # Todo interface (with order property)
 │   ├── utils/
 │   │   └── date.ts         # Date formatting utilities
 │   └── __tests__/
@@ -129,28 +133,19 @@ Trove/
 └── vitest.config.ts
 ```
 
-> **Important:** `public/manifest.json` is the file Vite copies to `dist/`. The root `manifest.json` is a reference copy and is not used by the build.
+> **Important:** `public/manifest.json` is the file Vite copies to `dist/`.
 
-### Popup lifecycle
-The popup is a self-contained single-page application running inside the browser extension popup window. It mounts on `DOMContentLoaded`, checks for a shortcut-triggered `targetView` in storage, and navigates to the appropriate view or defaults to Home.
-
-### View state machine
-The popup uses a finite state machine with five states:
-
-```
-home → notes-list → note-create
-                 → note-detail
-     → todos
-```
-
-Navigation is handled by the `navigateTo()` function which toggles CSS `hidden`/`active` classes and manages focus.
+### Popup lifecycle & Quick Capture
+The popup mounts on `DOMContentLoaded`, checks for a shortcut-triggered `targetView` in session/local storage, and routes accordingly:
+- `notes-quick-capture`: navigates to `note-create` and focuses `noteInput`.
+- `notes`: navigates to `notes-list`.
+- `todos-quick-capture` / `todos`: navigates to `todos` and focuses `todoInput`.
+- Default: navigates to `home`.
 
 ### Background service worker
 The MV3 service worker (`background.ts`) listens for `chrome.commands.onCommand` events. When a shortcut is triggered:
-1. Sets `targetView` in `chrome.storage.session` (fallback to `chrome.storage.local`).
+1. Sets `targetView` (`notes-quick-capture` or `todos-quick-capture`) in `chrome.storage.session` (fallback to `chrome.storage.local`).
 2. Calls `chrome.action.openPopup()`.
-
-The popup reads and clears `targetView` on mount in `checkShortcutLaunch()`.
 
 ---
 
@@ -176,6 +171,7 @@ interface Todo {
   text: string;       // Trimmed todo text
   completed: boolean; // Completion state
   createdAt: number;  // Unix timestamp (ms)
+  order: number;      // Explicit sort index for drag-and-drop ordering
 }
 ```
 
@@ -188,10 +184,10 @@ Storage key: `trove_todos`
 Both `storage/notes.ts` and `storage/todos.ts` follow the same pattern:
 
 - Read from `chrome.storage.local` using a named key.
-- Sort results by `createdAt` descending (newest first) on retrieval.
+- Notes are sorted by `createdAt` descending (newest first).
+- Todos are sorted by `order` ascending (new items get `maxOrder + 1` to append at the bottom).
 - Write operations are serialized through a sequential Promise queue (`withStorageLock`) to prevent race conditions on rapid concurrent modifications.
 - Validation (empty content rejection) happens before any storage operation.
-- Each module has isolated error handling and throws typed error messages.
 
 ---
 
@@ -207,59 +203,34 @@ Both `storage/notes.ts` and `storage/todos.ts` follow the same pattern:
 | Blue | `#315C98` | Secondary actions, todos accent |
 | White | `#FFFDF5` | Card surfaces |
 
-### Typography
-System sans-serif stack. Bold (700–900) for headings and labels. Uppercase for section titles and buttons. Strong hierarchy across all views.
-
 ### Borders and shadows
 - Cards and interactive elements: `3px solid #111111`
 - Hard offset shadow: `4px 4px 0 #111111`
 - Hover state: `transform: translate(-2px, -2px)` + larger shadow
 - Active/pressed state: `transform: translate(2px, 2px)` + smaller shadow
 
-### Decorative layer
-Memphis-inspired geometric shapes (stripes, squares, dots) are rendered in a `.memphis-bg` layer with `pointer-events: none`. They are purely decorative and do not affect layout or interaction.
-
-### UI principles
-- No glassmorphism, no blur-heavy effects, no gradients
-- No pill buttons, no excessive border radius
-- Every interactive element has a visible `:focus-visible` state
-- Decorative elements never overlap interactive elements
-
 ---
 
 ## 9. Performance
 
-_Measurements to be added as the project matures._
-
-**Current build output (v0.1.0):**
-- `popup.html`: ~7.3 KB (gzip: ~1.6 KB)
-- `popup.css`: ~11.4 KB (gzip: ~2.4 KB)
-- `popup.js`: ~13.5 KB (gzip: ~3.4 KB)
+**Current build output (v0.1.1):**
+- `popup.html`: ~7.8 KB (gzip: ~1.7 KB)
+- `popup.css`: ~13.0 KB (gzip: ~2.7 KB)
+- `popup.js`: ~17.7 KB (gzip: ~4.6 KB)
 - `background.js`: ~0.5 KB (gzip: ~0.3 KB)
-
-Total compressed transfer: ~7.7 KB
-
-**Known considerations:**
-- `loadAndRenderNotesList()` and `loadAndRenderTodosList()` rebuild all DOM nodes on each navigation. This is fine for small datasets but would need key-based diffing or `DocumentFragment` batching at scale (hundreds of items).
 
 ---
 
 ## 10. Architectural Decisions
 
-### Why no framework (React/Vue/Svelte)?
-The popup is small and self-contained. A framework would add bundle weight, a build-time transform step, and conceptual overhead that outweighs the benefits for this scope. Vanilla TypeScript with direct DOM manipulation is faster to load, easier to reason about, and produces a smaller final bundle.
+### Why separate `notes-quick-capture` from `notes` navigation?
+Normal navigation from Home to Notes should display existing notes (`notes-list`). Quick capture shortcut (`Alt + Shift + A`) specifically targets immediate note creation without requiring mouse clicks. Differentiating `targetView` strings in background service worker enables clean context-aware routing.
 
-### Why `chrome.storage.local` and not `localStorage`?
-`chrome.storage.local` is the correct API for extension storage. It is accessible from background workers and popup contexts consistently. `localStorage` is scoped to the popup page's origin and is not accessible from service workers.
+### Why explicit `order` property for Todos?
+Index-based sorting breaks when completing tasks or deleting items. An explicit `order` index decoupled from completion state ensures new tasks append to the bottom, drag-and-drop custom orders persist across browser restarts, and checking off tasks doesn't cause items to jump around.
 
-### Why no backend?
-Trove's core value proposition is local-first capture. Adding a backend would introduce authentication, latency, sync conflicts, infrastructure cost, and privacy risk — none of which serve the use case.
-
-### Why MV3 service worker for shortcuts?
-Chrome/Brave extensions must use the `chrome.commands` API to register global keyboard shortcuts. Implementing shortcuts purely via `document.addEventListener('keydown')` in the popup would only work while the popup is open, defeating the purpose of a direct-access shortcut.
-
-### Why session storage for shortcut routing?
-`chrome.storage.session` is ephemeral — it clears automatically when the browser session ends. It is the correct primitive for passing transient routing state from the background worker to the popup. `chrome.storage.local` is used as a fallback for browsers that do not support `session`.
+### Why floating arrow scroll control instead of native scrollbars?
+Native scrollbars vary across OS environments and disrupt Neo-Brutalist border aesthetics. The custom scroll indicator provides a subtle, functional visual affordance (`↓` / `↑`) that appears only when content overflows.
 
 ---
 
@@ -267,45 +238,31 @@ Chrome/Brave extensions must use the `chrome.commands` API to register global ke
 
 ```bash
 pnpm install     # Install dependencies
-pnpm test        # Run Vitest unit tests (watch: pnpm test -- --watch)
+pnpm test        # Run Vitest unit tests
 pnpm build       # Type-check + production build → dist/
 ```
-
-### Loading in browser (development)
-1. Run `pnpm build`.
-2. Navigate to `brave://extensions` or `chrome://extensions`.
-3. Enable **Developer mode**.
-4. Click **Load unpacked** → select `dist/`.
-5. Reload after each build: click the refresh icon on the extension card.
-
-### Testing
-Unit tests live in `src/__tests__/`. They mock `chrome.storage.local` using Vitest's `vi.fn()` and test storage logic in isolation. The popup UI is not currently covered by automated tests.
 
 ---
 
 ## 12. Release History
+
+### v0.1.1
+- Quick capture friction reduction for Notes (`Alt+Shift+A` → Create mode → focused → `Ctrl+Enter` save)
+- Quick capture friction reduction for Todos (`Alt+Shift+S` → focused → `Enter` add → retained focus)
+- Todo inline editing (double-click or Edit button)
+- Todo drag-and-drop reordering with persistent order
+- New todos appended to bottom of list
+- Todo completion status no longer changes list position
+- Scroll position preservation during todo state updates
+- Custom scroll indicator control replacing native scrollbars
+- Version synchronized across manifest.json and package.json
 
 ### v0.1.0
 - Initial release
 - Product renamed from Jot to Trove
 - Neo-Brutalist + Memphis visual identity
 - Central Home page with Notes and Todos navigation
-- Notes: create, edit, delete (ported from Phase 1)
+- Notes: create, edit, delete
 - Todos: add, complete, delete, bulk delete with confirmation modal
 - Keyboard shortcuts: `Alt+Shift+A` (Notes), `Alt+Shift+S` (Todos)
 - Background service worker for native command handling
-- Manifest V3 commands registration
-
----
-
-## 13. Future Roadmap
-
-_Possible future directions — not committed._
-
-- Quick capture mode (open directly to input without navigating Home)
-- Note search
-- Note/todo count indicators on Home page
-- Performance profiling and DOM render optimization
-- Options page for user preferences
-- Export notes/todos as JSON or plain text
-- v0.2.0 scope TBD

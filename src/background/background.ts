@@ -1,9 +1,11 @@
 chrome.commands.onCommand.addListener(async (command) => {
   let targetView: string | null = null;
   if (command === 'open-notes') {
-    targetView = 'notes';
+    // quick-capture: open notes directly in create mode with editor focused
+    targetView = 'notes-quick-capture';
   } else if (command === 'open-todos') {
-    targetView = 'todos';
+    // quick-capture: open todos with input focused
+    targetView = 'todos-quick-capture';
   }
 
   if (targetView) {
