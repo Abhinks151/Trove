@@ -211,12 +211,24 @@ Both `storage/notes.ts` and `storage/todos.ts` follow the same pattern:
 
 ---
 
-## 9. Performance
+## 9. Performance & Resource Optimization
 
-**Current build output (v0.1.1):**
-- `popup.html`: ~7.8 KB (gzip: ~1.7 KB)
-- `popup.css`: ~13.0 KB (gzip: ~2.7 KB)
-- `popup.js`: ~17.7 KB (gzip: ~4.6 KB)
+Trove is built to be lightweight, responsive, and resource-efficient.
+
+### Key Performance Architecture Improvements
+- **Event Delegation**: Replaced individual per-item event listeners with container-level event delegation (`notesListContainer` & `todosListContainer`), significantly reducing listener memory footprint and GC overhead.
+- **DocumentFragment Batching**: List rendering batches DOM element creation into a `DocumentFragment` before appending to the container in a single layout pass.
+- **Optimistic & Targeted DOM Updates**: 
+  - Todo completion toggles update DOM element classes instantly (0ms latency) before completing background storage writes.
+  - Item deletions target and remove specific DOM nodes directly without triggering full container tear-downs.
+- **Throttled & Passive Scroll Handling**: Custom scroll indicators use `requestAnimationFrame` scheduling and `{ passive: true }` scroll event listeners to prevent forced synchronous layout reflows.
+- **Cached `Intl` Date Formatters**: Replaced per-render `toLocaleTimeString`/`toLocaleDateString` calls with static, reusable `Intl.DateTimeFormat` instances in `src/utils/date.ts`.
+- **$O(N)$ Algorithmic Reordering**: Replaced $O(N^2)$ array inclusion checks during todo reordering with $O(1)$ `Set` lookups in `src/storage/todos.ts`.
+
+**Build Output:**
+- `popup.html`: ~8.2 KB (gzip: ~1.8 KB)
+- `assets/popup.css`: ~12.9 KB (gzip: ~2.7 KB)
+- `assets/popup.js`: ~19.8 KB (gzip: ~5.0 KB)
 - `background.js`: ~0.5 KB (gzip: ~0.3 KB)
 
 ---

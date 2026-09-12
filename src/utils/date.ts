@@ -1,3 +1,8 @@
+// Cached Intl.DateTimeFormat instances to avoid object allocation on every date format call
+const timeFormatter = new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' });
+const dateSameYearFormatter = new Intl.DateTimeFormat([], { month: 'short', day: 'numeric' });
+const dateDiffYearFormatter = new Intl.DateTimeFormat([], { month: 'short', day: 'numeric', year: 'numeric' });
+
 /**
  * Format a timestamp into a human-friendly string for list previews.
  * e.g., "Today, 8:32 PM", "Yesterday, 7:15 PM", "Sep 11, 2026"
@@ -18,7 +23,7 @@ export function formatRelativeDate(timestamp: number): string {
     date.getMonth() === yesterday.getMonth() &&
     date.getFullYear() === yesterday.getFullYear();
 
-  const timeString = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const timeString = timeFormatter.format(date);
 
   if (isToday) {
     return `Today, ${timeString}`;
@@ -27,11 +32,9 @@ export function formatRelativeDate(timestamp: number): string {
     return `Yesterday, ${timeString}`;
   }
 
-  const dateString = date.toLocaleDateString([], {
-    month: 'short',
-    day: 'numeric',
-    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-  });
+  const dateString = date.getFullYear() !== now.getFullYear()
+    ? dateDiffYearFormatter.format(date)
+    : dateSameYearFormatter.format(date);
 
   return `${dateString}, ${timeString}`;
 }
@@ -42,12 +45,9 @@ export function formatRelativeDate(timestamp: number): string {
  */
 export function formatFullDate(timestamp: number): string {
   const date = new Date(timestamp);
-  const dateString = date.toLocaleDateString([], {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
-  const timeString = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  const dateString = dateDiffYearFormatter.format(date);
+  const timeString = timeFormatter.format(date);
 
   return `${dateString} · ${timeString}`;
 }
+

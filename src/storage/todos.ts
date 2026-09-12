@@ -177,9 +177,10 @@ export async function reorderTodos(orderedIds: string[]): Promise<void> {
         }
       });
 
-      // Include any todos not in orderedIds (safety net)
+      // Include any todos not in orderedIds (safety net) with O(1) set lookup
+      const orderedIdSet = new Set(orderedIds);
       todos.forEach((t) => {
-        if (!orderedIds.includes(t.id)) {
+        if (!orderedIdSet.has(t.id)) {
           reordered.push({ ...t, order: reordered.length });
         }
       });

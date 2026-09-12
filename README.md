@@ -11,6 +11,7 @@ Trove is a browser extension built to quickly capture notes and tasks without le
 - Frictionless quick-capture for notes and todos
 - Quick note-taking with `Ctrl + Enter` save and full edit & delete
 - Todo list with inline editing, drag-and-drop reordering, and completion tracking
+- Performance optimized for minimal memory and CPU footprint
 - Custom scroll indicator control with native scrollbar hidden
 - Keyboard shortcuts for instant access (`Alt + Shift + A`, `Alt + Shift + S`)
 - Local-first storage — no account required
