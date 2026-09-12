@@ -1,114 +1,94 @@
-# Trove — Browser Extension (v0.1.0)
+# Trove
 
-Trove is a fast, clean, local browser extension for capturing notes and managing tasks quickly before they disappear.
+> Lightweight browser-native note and task capture.
 
-Built for **Brave Browser** and all **Chromium-based browsers** (Chrome, Edge, Opera) using **Manifest V3** and `chrome.storage.local`.
-
----
-
-## 🚀 Quick Installation Guide
-
-You can install Trove either by downloading the pre-built release package or by building from source.
-
-### Option A: Install from Release Zip (Recommended)
-
-1. Download the latest release package (**`v0.1.0`**) zip file.
-2. Extract the downloaded zip file to a folder on your computer.
-3. Open **Brave** or **Chrome** and navigate to:
-   - Brave: `brave://extensions`
-   - Chrome: `chrome://extensions`
-   - Edge: `edge://extensions`
-4. Enable **Developer mode** (toggle switch in top-right corner).
-5. Click **Load unpacked** in top action bar.
-6. Select the extracted release folder (`dist/`).
-7. **Pin Trove** to your browser toolbar.
+Trove is a browser extension I built to quickly capture notes and tasks without leaving the page I'm working on. Built for those moments when you're watching a video, reading an article, or browsing and need to write something down immediately.
 
 ---
 
-### Option B: Build & Install from Source
+## Features
 
-1. **Clone repository & install dependencies**:
-   ```bash
-   pnpm install
-   ```
-
-2. **Run tests**:
-   ```bash
-   pnpm test
-   ```
-
-3. **Build extension**:
-   ```bash
-   pnpm build
-   ```
-   This generates the compiled extension directory at `dist/`.
-
-4. **Load into Browser**:
-   - Go to `brave://extensions` (or `chrome://extensions`).
-   - Enable **Developer mode**.
-   - Click **Load unpacked** and select the **`dist/`** directory.
-   - **Pin Trove** to your toolbar.
+- Quick note-taking with edit & delete
+- Simple todo list with completion tracking
+- Keyboard shortcuts for direct access
+- Local-first storage — no account required
+- Works fully offline
+- Dark Neo-Brutalist UI
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## Installation
 
-Access Trove features directly with left-hand accessible shortcuts:
+### Download release
 
-- **Alt + Shift + A** → Open Notes directly
-- **Alt + Shift + S** → Open Todos directly
+1. Download the latest release zip.
+2. Extract to a folder.
+3. Open `brave://extensions` (or `chrome://extensions`).
+4. Enable **Developer mode**.
+5. Click **Load unpacked** → select the `dist/` folder.
+6. Pin Trove to your toolbar.
 
-Shortcuts can also be customized in your browser's extension shortcut settings (`chrome://extensions/shortcuts` or `brave://extensions/shortcuts`).
+### Build from source
 
----
-
-## 💡 Usage & Sections
-
-### 🏠 Home Page
-Central hub with direct navigation to **Notes** and **Todos**.
-
-### 📝 Notes
-1. **Create Note**: Click **Notes** → **+ New**, write your note, and click **Save Note**.
-2. **View Notes**: Browse your saved notes listed newest-first.
-3. **Edit Note**: Click any note card to open detail view, edit content, and click **Save Note**.
-4. **Delete Note**: Click **Delete Note** and confirm in the dialog.
-
-### ☑️ Todos
-1. **Add Todo**: Type a task in the input box and press **Enter** or click **Add**.
-2. **Complete Todo**: Click the checkbox to toggle completion state.
-3. **Delete Individual Todo**: Click **Delete** on any task item.
-4. **Bulk Delete**: Click **Delete Todos** to open prompt offering to **Delete completed**, **Delete all**, or **Cancel**.
-
----
-
-## ✨ Key Features (v0.1.0)
-
-- **Neo-Brutalist Visual Identity**: High-contrast, bold typography, hard offset shadows, Memphis geometric accents.
-- **Direct Keyboard Access**: Direct shortcuts to Notes and Todos.
-- **Notes & Todos**: Simple, fast local note-taking and task list.
-- **100% Offline & Private**: Stored locally in `chrome.storage.local`. Zero tracking, zero external APIs.
-
----
-
-## 🛠️ Tech Stack & Structure
-
-- **TypeScript** (Strict mode)
-- **HTML5 & Vanilla CSS** (Neo-Brutalist + Memphis style)
-- **Manifest V3** & **Chromium Extension APIs**
-- **Vite** & **Vitest**
-
-```text
-Trove/
-├── dist/                   # Compiled output folder for extension
-├── public/                 # Extension icons
-├── src/
-│   ├── background/         # Background service worker for commands
-│   ├── popup/              # UI views (HTML, CSS, TypeScript)
-│   ├── storage/            # Local storage handling (notes & todos)
-│   ├── types/              # TypeScript interfaces (Note, Todo)
-│   ├── utils/              # Date formatting utilities
-│   └── __tests__/          # Vitest test suite
-├── manifest.json
-├── package.json
-└── README.md
+```bash
+pnpm install
+pnpm build
 ```
+
+Then load the `dist/` folder as an unpacked extension.
+
+---
+
+## Usage
+
+```
+Home
+├── Notes
+└── Todos
+```
+
+**Notes** — Create, edit, and delete notes stored newest-first.
+
+**Todos** — Add tasks, mark complete, delete individually or in bulk.
+
+**Keyboard shortcuts**
+
+| Shortcut | Action |
+| --- | --- |
+| `Alt + Shift + A` | Open Notes |
+| `Alt + Shift + S` | Open Todos |
+
+Shortcuts can be customized at `brave://extensions/shortcuts`.
+
+---
+
+## Development
+
+```bash
+pnpm install     # install dependencies
+pnpm test        # run unit tests
+pnpm build       # production build → dist/
+```
+
+**Tech stack:** TypeScript · Vite · Vitest · Manifest V3 · Chrome Extension APIs
+
+```
+src/
+├── background/   # Extension command handling
+├── popup/        # Extension UI (HTML, CSS, TS)
+├── storage/      # Local persistence
+├── types/        # Shared interfaces
+└── utils/        # Utilities
+```
+
+---
+
+## Privacy
+
+Trove stores notes and todos locally using `chrome.storage.local`. It does not require an account, send data to a server, or use external APIs.
+
+---
+
+## License
+
+Trove is licensed under the MIT License.
