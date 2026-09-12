@@ -1,6 +1,6 @@
-# Trive — Browser Extension (v0.1.0)
+# Trove — Browser Extension (v0.1.0)
 
-Trive is a fast, clean, local browser extension for capturing notes and managing tasks quickly before they disappear.
+Trove is a fast, clean, local browser extension for capturing notes and managing tasks quickly before they disappear.
 
 Built for **Brave Browser** and all **Chromium-based browsers** (Chrome, Edge, Opera) using **Manifest V3** and `chrome.storage.local`.
 
@@ -8,7 +8,7 @@ Built for **Brave Browser** and all **Chromium-based browsers** (Chrome, Edge, O
 
 ## 🚀 Quick Installation Guide
 
-You can install Trive either by downloading the pre-built release package or by building from source.
+You can install Trove either by downloading the pre-built release package or by building from source.
 
 ### Option A: Install from Release Zip (Recommended)
 
@@ -21,7 +21,7 @@ You can install Trive either by downloading the pre-built release package or by 
 4. Enable **Developer mode** (toggle switch in top-right corner).
 5. Click **Load unpacked** in top action bar.
 6. Select the extracted release folder (`dist/`).
-7. **Pin Trive** to your browser toolbar.
+7. **Pin Trove** to your browser toolbar.
 
 ---
 
@@ -47,13 +47,13 @@ You can install Trive either by downloading the pre-built release package or by 
    - Go to `brave://extensions` (or `chrome://extensions`).
    - Enable **Developer mode**.
    - Click **Load unpacked** and select the **`dist/`** directory.
-   - **Pin Trive** to your toolbar.
+   - **Pin Trove** to your toolbar.
 
 ---
 
 ## ⌨️ Keyboard Shortcuts
 
-Access Trive features directly with left-hand accessible shortcuts:
+Access Trove features directly with left-hand accessible shortcuts:
 
 - **Alt + Shift + A** → Open Notes directly
 - **Alt + Shift + S** → Open Todos directly
@@ -98,7 +98,7 @@ Central hub with direct navigation to **Notes** and **Todos**.
 - **Vite** & **Vitest**
 
 ```text
-Trive/
+Trove/
 ├── dist/                   # Compiled output folder for extension
 ├── public/                 # Extension icons
 ├── src/

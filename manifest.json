@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Trive",
+  "name": "Trove",
   "version": "0.1.0",
-  "description": "Trive - Your notes. Your tasks.",
+  "description": "Trove - Your notes. Your tasks.",
   "permissions": [
     "storage"
   ],
