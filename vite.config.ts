@@ -8,6 +8,9 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
+    target: 'es2022',
+    minify: 'esbuild',
+    cssMinify: true,
     rollupOptions: {
       input: {
         popup: resolve(__dirname, 'src/popup/popup.html'),

@@ -23,6 +23,10 @@ let activeNote: Note | null = null;
 // Currently editing Todo ID
 let editingTodoId: string | null = null;
 
+// Cached list data for fast lookup without extra storage calls
+let cachedNotes: Note[] = [];
+let cachedTodos: Todo[] = [];
+
 // Timeouts for feedback messages
 let createNoteFeedbackTimeout: number | undefined;
 let detailNoteFeedbackTimeout: number | undefined;
@@ -220,6 +224,29 @@ function updateScrollIndicators(
   }
 }
 
+// Throttled scroll indicators to avoid forced synchronous layout reflows
+let notesScrollRafPending = false;
+function scheduleNotesScrollUpdate() {
+  if (!notesScrollRafPending) {
+    notesScrollRafPending = true;
+    requestAnimationFrame(() => {
+      updateScrollIndicators(notesScrollContainer, notesScrollUp, notesScrollDown);
+      notesScrollRafPending = false;
+    });
+  }
+}
+
+let todosScrollRafPending = false;
+function scheduleTodosScrollUpdate() {
+  if (!todosScrollRafPending) {
+    todosScrollRafPending = true;
+    requestAnimationFrame(() => {
+      updateScrollIndicators(todosScrollContainer, todoScrollUp, todoScrollDown);
+      todosScrollRafPending = false;
+    });
+  }
+}
+
 function handleScrollClick(container: HTMLElement | null, direction: 'up' | 'down') {
   if (!container) return;
   const scrollAmount = direction === 'up' ? -150 : 150;
@@ -326,19 +353,23 @@ async function loadAndRenderNotesList() {
   notesEmptyState.classList.add('hidden');
 
   try {
-    const notes = await getNotes();
+    cachedNotes = await getNotes();
 
-    if (notes.length === 0) {
+    if (cachedNotes.length === 0) {
       notesEmptyState.classList.remove('hidden');
-      updateScrollIndicators(notesScrollContainer, notesScrollUp, notesScrollDown);
+      scheduleNotesScrollUpdate();
       return;
     }
 
-    notes.forEach((note) => {
+    // Use DocumentFragment to batch DOM insertions in a single reflow
+    const fragment = document.createDocumentFragment();
+
+    cachedNotes.forEach((note) => {
       const card = document.createElement('div');
       card.className = 'note-card';
       card.tabIndex = 0;
       card.setAttribute('role', 'button');
+      card.setAttribute('data-id', note.id);
       card.setAttribute('aria-label', `Read note from ${formatRelativeDate(note.createdAt)}`);
 
       const preview = document.createElement('div');
@@ -351,24 +382,11 @@ async function loadAndRenderNotesList() {
 
       card.appendChild(preview);
       card.appendChild(time);
-
-      card.addEventListener('click', () => {
-        activeNote = note;
-        navigateTo('note-detail');
-      });
-
-      card.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          activeNote = note;
-          navigateTo('note-detail');
-        }
-      });
-
-      notesListContainer.appendChild(card);
+      fragment.appendChild(card);
     });
 
-    updateScrollIndicators(notesScrollContainer, notesScrollUp, notesScrollDown);
+    notesListContainer.appendChild(fragment);
+    scheduleNotesScrollUpdate();
   } catch (err) {
     console.error('Error rendering notes list:', err);
     notesListContainer.innerHTML = `<div class="feedback-msg error">Unable to load notes.</div>`;
@@ -424,205 +442,146 @@ async function handleAddTodo() {
 
 let draggedTodoId: string | null = null;
 
+function createTodoItemElement(todo: Todo): HTMLElement {
+  const item = document.createElement('div');
+  item.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+  item.setAttribute('data-id', todo.id);
+  item.setAttribute('draggable', 'true');
+
+  // Drag handle
+  const dragHandle = document.createElement('span');
+  dragHandle.className = 'drag-handle';
+  dragHandle.textContent = '⋮⋮';
+  dragHandle.setAttribute('aria-label', 'Drag to reorder');
+  dragHandle.setAttribute('title', 'Drag to reorder');
+
+  const left = document.createElement('div');
+  left.className = 'todo-left';
+
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.className = 'todo-checkbox';
+  checkbox.checked = todo.completed;
+  checkbox.setAttribute('aria-label', `Mark "${todo.text}" as ${todo.completed ? 'incomplete' : 'completed'}`);
+
+  left.appendChild(checkbox);
+
+  if (editingTodoId === todo.id) {
+    const editInput = document.createElement('input');
+    editInput.type = 'text';
+    editInput.className = 'todo-edit-input';
+    editInput.value = todo.text;
+    left.appendChild(editInput);
+    setTimeout(() => editInput.focus(), 0);
+  } else {
+    const textSpan = document.createElement('span');
+    textSpan.className = 'todo-text';
+    textSpan.textContent = todo.text;
+    textSpan.setAttribute('title', 'Double-click to edit');
+    left.appendChild(textSpan);
+  }
+
+  // Actions container (Edit & Delete)
+  const actions = document.createElement('div');
+  actions.className = 'todo-actions';
+
+  const btnEdit = document.createElement('button');
+  btnEdit.type = 'button';
+  btnEdit.className = 'btn-edit-todo';
+  btnEdit.textContent = 'Edit';
+  btnEdit.setAttribute('aria-label', `Edit todo "${todo.text}"`);
+
+  const btnDelete = document.createElement('button');
+  btnDelete.type = 'button';
+  btnDelete.className = 'btn-delete-todo';
+  btnDelete.textContent = 'Delete';
+  btnDelete.setAttribute('aria-label', `Delete todo "${todo.text}"`);
+
+  actions.appendChild(btnEdit);
+  actions.appendChild(btnDelete);
+
+  item.appendChild(dragHandle);
+  item.appendChild(left);
+  item.appendChild(actions);
+
+  // Drag and drop events per item (standard HTML5 DnD requirement)
+  item.addEventListener('dragstart', (e) => {
+    draggedTodoId = todo.id;
+    item.classList.add('dragging');
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', todo.id);
+    }
+  });
+
+  item.addEventListener('dragend', () => {
+    draggedTodoId = null;
+    item.classList.remove('dragging');
+    document.querySelectorAll('.todo-item').forEach((el) => el.classList.remove('drag-over'));
+  });
+
+  item.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (draggedTodoId && draggedTodoId !== todo.id) {
+      item.classList.add('drag-over');
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = 'move';
+      }
+    }
+  });
+
+  item.addEventListener('dragleave', () => {
+    item.classList.remove('drag-over');
+  });
+
+  item.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    item.classList.remove('drag-over');
+    if (!draggedTodoId || draggedTodoId === todo.id) return;
+
+    const currentTodos = cachedTodos.length ? cachedTodos : await getTodos();
+    const currentIds = currentTodos.map((t) => t.id);
+    const fromIndex = currentIds.indexOf(draggedTodoId);
+    const toIndex = currentIds.indexOf(todo.id);
+
+    if (fromIndex !== -1 && toIndex !== -1) {
+      currentIds.splice(fromIndex, 1);
+      currentIds.splice(toIndex, 0, draggedTodoId);
+      await reorderTodos(currentIds);
+      await loadAndRenderTodosList(true);
+    }
+  });
+
+  return item;
+}
+
 async function loadAndRenderTodosList(preserveScroll = false) {
   const savedScrollTop = todosScrollContainer ? todosScrollContainer.scrollTop : 0;
   todosListContainer.innerHTML = '';
   todosEmptyState.classList.add('hidden');
 
   try {
-    const todos = await getTodos();
+    cachedTodos = await getTodos();
 
-    if (todos.length === 0) {
+    if (cachedTodos.length === 0) {
       todosEmptyState.classList.remove('hidden');
-      updateScrollIndicators(todosScrollContainer, todoScrollUp, todoScrollDown);
+      scheduleTodosScrollUpdate();
       return;
     }
 
-    todos.forEach((todo) => {
-      const item = document.createElement('div');
-      item.className = `todo-item ${todo.completed ? 'completed' : ''}`;
-      item.setAttribute('data-id', todo.id);
-      item.setAttribute('draggable', 'true');
-
-      // Drag and drop event handlers
-      item.addEventListener('dragstart', (e) => {
-        draggedTodoId = todo.id;
-        item.classList.add('dragging');
-        if (e.dataTransfer) {
-          e.dataTransfer.effectAllowed = 'move';
-          e.dataTransfer.setData('text/plain', todo.id);
-        }
-      });
-
-      item.addEventListener('dragend', () => {
-        draggedTodoId = null;
-        item.classList.remove('dragging');
-        document.querySelectorAll('.todo-item').forEach((el) => el.classList.remove('drag-over'));
-      });
-
-      item.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        if (draggedTodoId && draggedTodoId !== todo.id) {
-          item.classList.add('drag-over');
-          if (e.dataTransfer) {
-            e.dataTransfer.dropEffect = 'move';
-          }
-        }
-      });
-
-      item.addEventListener('dragleave', () => {
-        item.classList.remove('drag-over');
-      });
-
-      item.addEventListener('drop', async (e) => {
-        e.preventDefault();
-        item.classList.remove('drag-over');
-        if (!draggedTodoId || draggedTodoId === todo.id) return;
-
-        const currentTodos = await getTodos();
-        const currentIds = currentTodos.map((t) => t.id);
-        const fromIndex = currentIds.indexOf(draggedTodoId);
-        const toIndex = currentIds.indexOf(todo.id);
-
-        if (fromIndex !== -1 && toIndex !== -1) {
-          currentIds.splice(fromIndex, 1);
-          currentIds.splice(toIndex, 0, draggedTodoId);
-          await reorderTodos(currentIds);
-          loadAndRenderTodosList(true);
-        }
-      });
-
-      // Drag Handle
-      const dragHandle = document.createElement('span');
-      dragHandle.className = 'drag-handle';
-      dragHandle.textContent = '⋮⋮';
-      dragHandle.setAttribute('aria-label', 'Drag to reorder');
-      dragHandle.setAttribute('title', 'Drag to reorder');
-
-      const left = document.createElement('div');
-      left.className = 'todo-left';
-
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.className = 'todo-checkbox';
-      checkbox.checked = todo.completed;
-      checkbox.setAttribute('aria-label', `Mark "${todo.text}" as ${todo.completed ? 'incomplete' : 'completed'}`);
-
-      checkbox.addEventListener('change', async () => {
-        try {
-          await toggleTodo(todo.id);
-          loadAndRenderTodosList(true); // preserve scroll position
-        } catch (err) {
-          console.error('Failed to toggle todo:', err);
-          showTodoFeedback('Unable to update task.', true);
-        }
-      });
-
-      left.appendChild(checkbox);
-
-      // Check if this item is currently in edit mode
-      if (editingTodoId === todo.id) {
-        const editInput = document.createElement('input');
-        editInput.type = 'text';
-        editInput.className = 'todo-edit-input';
-        editInput.value = todo.text;
-
-        const saveEdit = async () => {
-          const newText = editInput.value;
-          try {
-            await updateTodoStorage(todo.id, newText);
-            editingTodoId = null;
-            await loadAndRenderTodosList(true);
-          } catch (err) {
-            if (err instanceof Error) {
-              showTodoFeedback(err.message, true);
-            } else {
-              showTodoFeedback('Unable to update todo.', true);
-            }
-          }
-        };
-
-        editInput.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            saveEdit();
-          } else if (e.key === 'Escape') {
-            e.preventDefault();
-            editingTodoId = null;
-            loadAndRenderTodosList(true);
-          }
-        });
-
-        editInput.addEventListener('blur', () => {
-          saveEdit();
-        });
-
-        left.appendChild(editInput);
-        setTimeout(() => editInput.focus(), 0);
-      } else {
-        const text = document.createElement('span');
-        text.className = 'todo-text';
-        text.textContent = todo.text;
-        text.setAttribute('title', 'Double-click to edit');
-
-        text.addEventListener('dblclick', () => {
-          editingTodoId = todo.id;
-          loadAndRenderTodosList(true);
-        });
-
-        left.appendChild(text);
-      }
-
-      // Actions container (Edit & Delete)
-      const actions = document.createElement('div');
-      actions.className = 'todo-actions';
-
-      const btnEdit = document.createElement('button');
-      btnEdit.type = 'button';
-      btnEdit.className = 'btn-edit-todo';
-      btnEdit.textContent = 'Edit';
-      btnEdit.setAttribute('aria-label', `Edit todo "${todo.text}"`);
-
-      btnEdit.addEventListener('click', () => {
-        if (editingTodoId === todo.id) {
-          editingTodoId = null;
-        } else {
-          editingTodoId = todo.id;
-        }
-        loadAndRenderTodosList(true);
-      });
-
-      const btnDelete = document.createElement('button');
-      btnDelete.type = 'button';
-      btnDelete.className = 'btn-delete-todo';
-      btnDelete.textContent = 'Delete';
-      btnDelete.setAttribute('aria-label', `Delete todo "${todo.text}"`);
-
-      btnDelete.addEventListener('click', async () => {
-        try {
-          await deleteTodo(todo.id);
-          loadAndRenderTodosList(true); // preserve scroll position
-        } catch (err) {
-          console.error('Failed to delete todo:', err);
-          showTodoFeedback('Unable to delete task.', true);
-        }
-      });
-
-      actions.appendChild(btnEdit);
-      actions.appendChild(btnDelete);
-
-      item.appendChild(dragHandle);
-      item.appendChild(left);
-      item.appendChild(actions);
-
-      todosListContainer.appendChild(item);
+    // Batch element insertion into DocumentFragment
+    const fragment = document.createDocumentFragment();
+    cachedTodos.forEach((todo) => {
+      fragment.appendChild(createTodoItemElement(todo));
     });
+
+    todosListContainer.appendChild(fragment);
 
     if (preserveScroll && todosScrollContainer) {
       todosScrollContainer.scrollTop = savedScrollTop;
     }
 
-    updateScrollIndicators(todosScrollContainer, todoScrollUp, todoScrollDown);
+    scheduleTodosScrollUpdate();
   } catch (err) {
     console.error('Error rendering todos:', err);
     todosListContainer.innerHTML = `<div class="feedback-msg error">Unable to load tasks.</div>`;
@@ -649,6 +608,176 @@ async function handleDeleteAllTodos() {
     console.error('Failed to delete all todos:', err);
     showTodoFeedback('Unable to clear all tasks.', true);
   }
+}
+
+/**
+ * Target-level Event Delegation for Notes List Container
+ */
+function setupNotesDelegation() {
+  notesListContainer.addEventListener('click', (e) => {
+    const card = (e.target as HTMLElement).closest('.note-card') as HTMLElement | null;
+    if (!card) return;
+    const noteId = card.getAttribute('data-id');
+    const note = cachedNotes.find((n) => n.id === noteId);
+    if (note) {
+      activeNote = note;
+      navigateTo('note-detail');
+    }
+  });
+
+  notesListContainer.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const card = (e.target as HTMLElement).closest('.note-card') as HTMLElement | null;
+      if (!card) return;
+      e.preventDefault();
+      const noteId = card.getAttribute('data-id');
+      const note = cachedNotes.find((n) => n.id === noteId);
+      if (note) {
+        activeNote = note;
+        navigateTo('note-detail');
+      }
+    }
+  });
+}
+
+/**
+ * Target-level Event Delegation for Todos List Container
+ */
+function setupTodosDelegation() {
+  // Checkbox state change (Optimistic DOM update)
+  todosListContainer.addEventListener('change', async (e) => {
+    const checkbox = e.target as HTMLInputElement;
+    if (!checkbox.classList.contains('todo-checkbox')) return;
+
+    const item = checkbox.closest('.todo-item') as HTMLElement | null;
+    if (!item) return;
+
+    const id = item.getAttribute('data-id');
+    if (!id) return;
+
+    // Optimistically update DOM state immediately for 0ms latency
+    const isCompleted = checkbox.checked;
+    item.classList.toggle('completed', isCompleted);
+    checkbox.setAttribute('aria-label', `Mark "${item.querySelector('.todo-text')?.textContent || ''}" as ${isCompleted ? 'incomplete' : 'completed'}`);
+
+    try {
+      await toggleTodo(id);
+      // Update local cache without rebuilding full DOM
+      const cached = cachedTodos.find((t) => t.id === id);
+      if (cached) cached.completed = isCompleted;
+    } catch (err) {
+      console.error('Failed to toggle todo:', err);
+      // Revert optimistic update on failure
+      checkbox.checked = !isCompleted;
+      item.classList.toggle('completed', !isCompleted);
+      showTodoFeedback('Unable to update task.', true);
+    }
+  });
+
+  // Action clicks (Delete & Edit buttons)
+  todosListContainer.addEventListener('click', async (e) => {
+    const target = e.target as HTMLElement;
+
+    if (target.classList.contains('btn-delete-todo')) {
+      const item = target.closest('.todo-item') as HTMLElement | null;
+      if (!item) return;
+      const id = item.getAttribute('data-id');
+      if (!id) return;
+
+      try {
+        await deleteTodo(id);
+        // Targeted DOM node removal instead of wiping full list
+        item.remove();
+        cachedTodos = cachedTodos.filter((t) => t.id !== id);
+        if (cachedTodos.length === 0) {
+          todosEmptyState.classList.remove('hidden');
+        }
+        scheduleTodosScrollUpdate();
+      } catch (err) {
+        console.error('Failed to delete todo:', err);
+        showTodoFeedback('Unable to delete task.', true);
+      }
+    } else if (target.classList.contains('btn-edit-todo')) {
+      const item = target.closest('.todo-item') as HTMLElement | null;
+      if (!item) return;
+      const id = item.getAttribute('data-id');
+      if (!id) return;
+
+      editingTodoId = editingTodoId === id ? null : id;
+      loadAndRenderTodosList(true);
+    }
+  });
+
+  // Double click to edit text
+  todosListContainer.addEventListener('dblclick', (e) => {
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('todo-text')) {
+      const item = target.closest('.todo-item') as HTMLElement | null;
+      if (!item) return;
+      const id = item.getAttribute('data-id');
+      if (!id) return;
+
+      editingTodoId = id;
+      loadAndRenderTodosList(true);
+    }
+  });
+
+  // Keydown listener for inline editing (Enter to save, Escape to cancel)
+  todosListContainer.addEventListener('keydown', async (e) => {
+    const input = e.target as HTMLInputElement;
+    if (!input.classList.contains('todo-edit-input')) return;
+
+    const item = input.closest('.todo-item') as HTMLElement | null;
+    if (!item) return;
+    const id = item.getAttribute('data-id');
+    if (!id) return;
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const newText = input.value;
+      try {
+        await updateTodoStorage(id, newText);
+        editingTodoId = null;
+        loadAndRenderTodosList(true);
+      } catch (err) {
+        if (err instanceof Error) {
+          showTodoFeedback(err.message, true);
+        } else {
+          showTodoFeedback('Unable to update todo.', true);
+        }
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      editingTodoId = null;
+      loadAndRenderTodosList(true);
+    }
+  });
+
+  // Blur listener for inline edit auto-save
+  todosListContainer.addEventListener('focusout', async (e) => {
+    const input = e.target as HTMLInputElement;
+    if (!input || !input.classList || !input.classList.contains('todo-edit-input')) return;
+
+    // Small delay to allow Escape key or Enter key to process first if pressed
+    setTimeout(async () => {
+      if (editingTodoId === null) return;
+      const item = input.closest('.todo-item') as HTMLElement | null;
+      if (!item) return;
+      const id = item.getAttribute('data-id');
+      if (!id || id !== editingTodoId) return;
+
+      const newText = input.value;
+      try {
+        await updateTodoStorage(id, newText);
+        editingTodoId = null;
+        loadAndRenderTodosList(true);
+      } catch (err) {
+        if (err instanceof Error) {
+          showTodoFeedback(err.message, true);
+        }
+      }
+    }, 100);
+  });
 }
 
 /**
@@ -766,11 +895,9 @@ function initEvents() {
     todoDeleteDialog.classList.add('hidden');
   });
 
-  // Custom Scroll Indicators
+  // Passive, rAF-throttled scroll listeners to eliminate layout thrashing
   if (notesScrollContainer) {
-    notesScrollContainer.addEventListener('scroll', () => {
-      updateScrollIndicators(notesScrollContainer, notesScrollUp, notesScrollDown);
-    });
+    notesScrollContainer.addEventListener('scroll', scheduleNotesScrollUpdate, { passive: true });
   }
   if (notesScrollUp) {
     notesScrollUp.addEventListener('click', () => handleScrollClick(notesScrollContainer, 'up'));
@@ -780,9 +907,7 @@ function initEvents() {
   }
 
   if (todosScrollContainer) {
-    todosScrollContainer.addEventListener('scroll', () => {
-      updateScrollIndicators(todosScrollContainer, todoScrollUp, todoScrollDown);
-    });
+    todosScrollContainer.addEventListener('scroll', scheduleTodosScrollUpdate, { passive: true });
   }
   if (todoScrollUp) {
     todoScrollUp.addEventListener('click', () => handleScrollClick(todosScrollContainer, 'up'));
@@ -790,6 +915,10 @@ function initEvents() {
   if (todoScrollDown) {
     todoScrollDown.addEventListener('click', () => handleScrollClick(todosScrollContainer, 'down'));
   }
+
+  // Delegated event listeners for containers
+  setupNotesDelegation();
+  setupTodosDelegation();
 
   // Global popup shortcut listener
   setupKeyboardShortcuts();
