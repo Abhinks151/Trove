@@ -1,11 +1,29 @@
 {
   "manifest_version": 3,
-  "name": "Trove",
-  "version": "1.0.0",
-  "description": "Minimal browser note-taking extension for capturing thoughts quickly.",
+  "name": "Trive",
+  "version": "0.1.0",
+  "description": "Trive - Your notes. Your tasks.",
   "permissions": [
     "storage"
   ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "commands": {
+    "open-notes": {
+      "suggested_key": {
+        "default": "Alt+Shift+A"
+      },
+      "description": "Open Notes"
+    },
+    "open-todos": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "Open Todos"
+    }
+  },
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
