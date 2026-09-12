@@ -416,10 +416,9 @@ body {
   display: none; /* Chrome, Safari, Opera */
 }
 
-/* Custom Scroll Indicator Arrow */
+/* Custom Scroll Indicator Arrows */
 .scroll-indicator {
   position: absolute;
-  bottom: 8px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
@@ -438,6 +437,14 @@ body {
   cursor: pointer;
   transition: transform 0.1s ease, background-color 0.1s ease;
   user-select: none;
+}
+
+.scroll-indicator-top {
+  top: 6px;
+}
+
+.scroll-indicator-bottom {
+  bottom: 6px;
 }
 
 .scroll-indicator:hover {

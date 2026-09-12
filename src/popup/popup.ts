@@ -37,9 +37,12 @@ const viewTodos = document.getElementById('view-todos') as HTMLElement;
 
 // DOM Elements: Scroll containers & indicators
 const notesScrollContainer = document.getElementById('notes-scroll-container') as HTMLElement;
-const notesScrollIndicator = document.getElementById('notes-scroll-indicator') as HTMLButtonElement;
+const notesScrollUp = document.getElementById('notes-scroll-up') as HTMLButtonElement;
+const notesScrollDown = document.getElementById('notes-scroll-down') as HTMLButtonElement;
+
 const todosScrollContainer = document.getElementById('todos-scroll-container') as HTMLElement;
-const todosScrollIndicator = document.getElementById('todo-scroll-indicator') as HTMLButtonElement;
+const todoScrollUp = document.getElementById('todo-scroll-up') as HTMLButtonElement;
+const todoScrollDown = document.getElementById('todo-scroll-down') as HTMLButtonElement;
 
 // DOM Elements: Home
 const btnHomeNotes = document.getElementById('btn-home-notes') as HTMLButtonElement;
@@ -175,39 +178,51 @@ async function checkShortcutLaunch() {
 
 /**
  * Custom Scroll Indicator Helper
+ * Manages separate Top (↑) and Bottom (↓) scroll arrows when content overflows
  */
-function updateScrollIndicator(container: HTMLElement | null, indicator: HTMLButtonElement | null) {
-  if (!container || !indicator) return;
+function updateScrollIndicators(
+  container: HTMLElement | null,
+  upBtn: HTMLButtonElement | null,
+  downBtn: HTMLButtonElement | null
+) {
+  if (!container) return;
 
   const scrollTop = container.scrollTop;
   const scrollHeight = container.scrollHeight;
   const clientHeight = container.clientHeight;
 
-  // Show arrow only when content genuinely overflows
+  // Show arrows only when content genuinely overflows
   const isScrollable = scrollHeight > clientHeight + 4;
   if (!isScrollable) {
-    indicator.classList.add('hidden');
+    if (upBtn) upBtn.classList.add('hidden');
+    if (downBtn) downBtn.classList.add('hidden');
     return;
   }
 
-  indicator.classList.remove('hidden');
+  // Show UP arrow if scrolled down from top
+  const canScrollUp = scrollTop > 6;
+  if (upBtn) {
+    if (canScrollUp) {
+      upBtn.classList.remove('hidden');
+    } else {
+      upBtn.classList.add('hidden');
+    }
+  }
 
-  // If scrolled to bottom, switch arrow to UP
-  const atBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight - 6;
-  if (atBottom) {
-    indicator.textContent = '↑';
-    indicator.setAttribute('aria-label', 'Scroll up');
-  } else {
-    indicator.textContent = '↓';
-    indicator.setAttribute('aria-label', 'Scroll down');
+  // Show DOWN arrow if more content below
+  const canScrollDown = Math.ceil(scrollTop + clientHeight) < scrollHeight - 6;
+  if (downBtn) {
+    if (canScrollDown) {
+      downBtn.classList.remove('hidden');
+    } else {
+      downBtn.classList.add('hidden');
+    }
   }
 }
 
-function handleScrollIndicatorClick(container: HTMLElement | null, indicator: HTMLButtonElement | null) {
-  if (!container || !indicator) return;
-
-  const isUp = indicator.textContent === '↑';
-  const scrollAmount = isUp ? -150 : 150;
+function handleScrollClick(container: HTMLElement | null, direction: 'up' | 'down') {
+  if (!container) return;
+  const scrollAmount = direction === 'up' ? -150 : 150;
   container.scrollBy({ top: scrollAmount, behavior: 'smooth' });
 }
 
@@ -315,7 +330,7 @@ async function loadAndRenderNotesList() {
 
     if (notes.length === 0) {
       notesEmptyState.classList.remove('hidden');
-      updateScrollIndicator(notesScrollContainer, notesScrollIndicator);
+      updateScrollIndicators(notesScrollContainer, notesScrollUp, notesScrollDown);
       return;
     }
 
@@ -353,7 +368,7 @@ async function loadAndRenderNotesList() {
       notesListContainer.appendChild(card);
     });
 
-    updateScrollIndicator(notesScrollContainer, notesScrollIndicator);
+    updateScrollIndicators(notesScrollContainer, notesScrollUp, notesScrollDown);
   } catch (err) {
     console.error('Error rendering notes list:', err);
     notesListContainer.innerHTML = `<div class="feedback-msg error">Unable to load notes.</div>`;
@@ -419,7 +434,7 @@ async function loadAndRenderTodosList(preserveScroll = false) {
 
     if (todos.length === 0) {
       todosEmptyState.classList.remove('hidden');
-      updateScrollIndicator(todosScrollContainer, todosScrollIndicator);
+      updateScrollIndicators(todosScrollContainer, todoScrollUp, todoScrollDown);
       return;
     }
 
@@ -607,7 +622,7 @@ async function loadAndRenderTodosList(preserveScroll = false) {
       todosScrollContainer.scrollTop = savedScrollTop;
     }
 
-    updateScrollIndicator(todosScrollContainer, todosScrollIndicator);
+    updateScrollIndicators(todosScrollContainer, todoScrollUp, todoScrollDown);
   } catch (err) {
     console.error('Error rendering todos:', err);
     todosListContainer.innerHTML = `<div class="feedback-msg error">Unable to load tasks.</div>`;
@@ -752,22 +767,28 @@ function initEvents() {
   });
 
   // Custom Scroll Indicators
-  if (notesScrollContainer && notesScrollIndicator) {
+  if (notesScrollContainer) {
     notesScrollContainer.addEventListener('scroll', () => {
-      updateScrollIndicator(notesScrollContainer, notesScrollIndicator);
-    });
-    notesScrollIndicator.addEventListener('click', () => {
-      handleScrollIndicatorClick(notesScrollContainer, notesScrollIndicator);
+      updateScrollIndicators(notesScrollContainer, notesScrollUp, notesScrollDown);
     });
   }
+  if (notesScrollUp) {
+    notesScrollUp.addEventListener('click', () => handleScrollClick(notesScrollContainer, 'up'));
+  }
+  if (notesScrollDown) {
+    notesScrollDown.addEventListener('click', () => handleScrollClick(notesScrollContainer, 'down'));
+  }
 
-  if (todosScrollContainer && todosScrollIndicator) {
+  if (todosScrollContainer) {
     todosScrollContainer.addEventListener('scroll', () => {
-      updateScrollIndicator(todosScrollContainer, todosScrollIndicator);
+      updateScrollIndicators(todosScrollContainer, todoScrollUp, todoScrollDown);
     });
-    todosScrollIndicator.addEventListener('click', () => {
-      handleScrollIndicatorClick(todosScrollContainer, todosScrollIndicator);
-    });
+  }
+  if (todoScrollUp) {
+    todoScrollUp.addEventListener('click', () => handleScrollClick(todosScrollContainer, 'up'));
+  }
+  if (todoScrollDown) {
+    todoScrollDown.addEventListener('click', () => handleScrollClick(todosScrollContainer, 'down'));
   }
 
   // Global popup shortcut listener

@@ -61,6 +61,8 @@
       </header>
 
       <main class="content scrollable-wrapper">
+        <button id="notes-scroll-up" class="scroll-indicator scroll-indicator-top hidden" aria-label="Scroll notes up"
+          type="button" tabindex="-1">↑</button>
         <div id="notes-scroll-container" class="content scrollable">
           <div id="notes-list-container" class="notes-list"></div>
 
@@ -70,7 +72,8 @@
             <button id="btn-create-note-empty" class="btn btn-primary" type="button">Create Note</button>
           </div>
         </div>
-        <button id="notes-scroll-indicator" class="scroll-indicator hidden" aria-label="Scroll list" type="button" tabindex="-1">↓</button>
+        <button id="notes-scroll-down" class="scroll-indicator scroll-indicator-bottom hidden"
+          aria-label="Scroll notes down" type="button" tabindex="-1">↓</button>
       </main>
     </section>
 
@@ -142,6 +145,8 @@
         <div id="todo-feedback" class="feedback-msg" aria-live="polite"></div>
 
         <div class="scrollable-wrapper">
+          <button id="todo-scroll-up" class="scroll-indicator scroll-indicator-top hidden" aria-label="Scroll todos up"
+            type="button" tabindex="-1">↑</button>
           <div id="todos-scroll-container" class="content scrollable todo-scrollable">
             <div id="todos-list-container" class="todos-list"></div>
 
@@ -150,7 +155,8 @@
               <p class="empty-subtitle">Add something you need to remember.</p>
             </div>
           </div>
-          <button id="todo-scroll-indicator" class="scroll-indicator hidden" aria-label="Scroll list" type="button" tabindex="-1">↓</button>
+          <button id="todo-scroll-down" class="scroll-indicator scroll-indicator-bottom hidden"
+            aria-label="Scroll todos down" type="button" tabindex="-1">↓</button>
         </div>
       </main>
     </section>
