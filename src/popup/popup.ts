@@ -376,12 +376,24 @@ async function loadAndRenderNotesList() {
       preview.className = 'note-preview';
       preview.textContent = note.content;
 
+      const footer = document.createElement('div');
+      footer.className = 'note-footer';
+
       const time = document.createElement('div');
       time.className = 'note-time';
       time.textContent = formatRelativeDate(note.createdAt);
 
+      const btnDelete = document.createElement('button');
+      btnDelete.type = 'button';
+      btnDelete.className = 'btn-delete-note-item';
+      btnDelete.textContent = 'Delete';
+      btnDelete.setAttribute('aria-label', `Delete note from ${formatRelativeDate(note.createdAt)}`);
+
+      footer.appendChild(time);
+      footer.appendChild(btnDelete);
+
       card.appendChild(preview);
-      card.appendChild(time);
+      card.appendChild(footer);
       fragment.appendChild(card);
     });
 
@@ -412,7 +424,11 @@ async function handleConfirmDeleteNote() {
     await deleteNote(activeNote.id);
     activeNote = null;
     deleteConfirmDialog.classList.add('hidden');
-    navigateTo('notes-list');
+    if (currentView === 'notes-list') {
+      loadAndRenderNotesList();
+    } else {
+      navigateTo('notes-list');
+    }
   } catch (err) {
     console.error('Failed to delete note:', err);
     showDetailNoteFeedback('Unable to delete note. Please try again.', true);
@@ -614,8 +630,24 @@ async function handleDeleteAllTodos() {
  * Target-level Event Delegation for Notes List Container
  */
 function setupNotesDelegation() {
-  notesListContainer.addEventListener('click', (e) => {
-    const card = (e.target as HTMLElement).closest('.note-card') as HTMLElement | null;
+  notesListContainer.addEventListener('click', async (e) => {
+    const target = e.target as HTMLElement;
+
+    if (target.classList.contains('btn-delete-note-item')) {
+      e.stopPropagation();
+      const card = target.closest('.note-card') as HTMLElement | null;
+      if (!card) return;
+      const id = card.getAttribute('data-id');
+      if (!id) return;
+      const note = cachedNotes.find((n) => n.id === id);
+      if (note) {
+        activeNote = note;
+        deleteConfirmDialog.classList.remove('hidden');
+      }
+      return;
+    }
+
+    const card = target.closest('.note-card') as HTMLElement | null;
     if (!card) return;
     const noteId = card.getAttribute('data-id');
     const note = cachedNotes.find((n) => n.id === noteId);
@@ -626,8 +658,13 @@ function setupNotesDelegation() {
   });
 
   notesListContainer.addEventListener('keydown', (e) => {
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('btn-delete-note-item')) {
+      return;
+    }
+
     if (e.key === 'Enter' || e.key === ' ') {
-      const card = (e.target as HTMLElement).closest('.note-card') as HTMLElement | null;
+      const card = target.closest('.note-card') as HTMLElement | null;
       if (!card) return;
       e.preventDefault();
       const noteId = card.getAttribute('data-id');

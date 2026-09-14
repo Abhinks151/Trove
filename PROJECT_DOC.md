@@ -53,7 +53,7 @@ Trove was built as a personal tool to scratch that itch. It is intentionally min
 - Notes are stored and listed newest-first.
 - Click any note card to open it in detail/edit view.
 - Edit note content inline; save with the Save button or `Ctrl + Enter`.
-- Delete note via Delete Note with a confirmation dialog.
+- Delete note directly via the Delete button on each note card in the list view without losing scroll position, or via Delete Note in detail view with a confirmation dialog.
 - Empty or whitespace-only notes are rejected.
 
 ### Todos

@@ -50,7 +50,7 @@ Home
 └── Todos
 ```
 
-**Notes** — Create (`Ctrl + Enter` to save), view, edit, and delete notes.
+**Notes** — Create (`Ctrl + Enter` to save), view, edit, and delete notes (individually from the list or detail view).
 
 **Todos** — Add tasks (appended to bottom), inline edit, drag-and-drop reorder, toggle completion, and delete individually or in bulk.
 
